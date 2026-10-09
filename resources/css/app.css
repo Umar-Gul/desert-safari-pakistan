@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2;
+    }
+    .btn-primary {
+        @apply bg-amber-600 text-white hover:bg-amber-700;
+    }
+    .btn-outline {
+        @apply border border-stone-300 bg-white text-stone-800 hover:bg-stone-50;
+    }
+    .btn-whatsapp {
+        @apply bg-green-600 text-white hover:bg-green-700;
+    }
+    .field {
+        @apply block w-full rounded-lg border-stone-300 text-sm shadow-sm focus:border-amber-500 focus:ring-amber-500;
+    }
+    .field-label {
+        @apply mb-1 block text-sm font-medium text-stone-700;
+    }
+
+    /* Wrapper for static legal / about pages */
+    .legal h2 {
+        @apply mb-3 mt-8 text-xl font-semibold text-stone-900;
+    }
+    .legal p {
+        @apply mb-4 leading-relaxed text-stone-700;
+    }
+    .legal ul {
+        @apply mb-4 list-disc space-y-1 pl-6 text-stone-700;
+    }
+    .legal a {
+        @apply text-amber-700 underline;
+    }
+
+    @layer components {
+    .rich h2 { @apply mb-3 mt-6 text-xl font-semibold text-stone-900; }
+    .rich h3 { @apply mb-2 mt-5 text-lg font-semibold text-stone-900; }
+    .rich p { @apply mb-4 leading-relaxed text-stone-700; }
+    .rich ul { @apply mb-4 list-disc space-y-1 pl-6 text-stone-700; }
+    .rich ol { @apply mb-4 list-decimal space-y-1 pl-6 text-stone-700; }
+    .rich a { @apply text-amber-700 underline; }
+    .rich blockquote { @apply my-4 border-l-4 border-amber-400 pl-4 italic text-stone-600; }
+    .rich img { @apply my-4 h-auto max-w-full rounded-lg; }
+}
+}

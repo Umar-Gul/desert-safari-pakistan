@@ -1,0 +1,1 @@
+<x-seo.jsonld :data="app(\App\Services\SeoService::class)->organization()" />

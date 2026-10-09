@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /admin
+Disallow: /login
+Disallow: /profile
+Allow: /
+
+# Replace with your real domain (dynamic sitemap arrives in Phase 6)
+Sitemap: https://example.com/sitemap.xml
