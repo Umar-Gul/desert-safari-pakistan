@@ -43,9 +43,9 @@ class SettingsSeeder extends Seeder
             ['currency', 'usd_rate', '0.0036', 'string'],
 
             // Contact
-            ['contact', 'phone', '+92 300 0000000', 'string'],
-            ['contact', 'whatsapp_number', '923000000000', 'string'],
-            ['contact', 'email', 'info@example.com', 'string'],
+            ['contact', 'phone', '+92 344 2900411', 'string'],
+            ['contact', 'whatsapp_number', '923442900411', 'string'],
+            ['contact', 'email', 'farooqhalimzai24@gmail.com', 'string'],
             ['contact', 'address', 'Bahawalpur, Punjab, Pakistan', 'string'],
             ['contact', 'business_hours', 'Daily, 8:00 AM to 10:00 PM (PKT)', 'string'],
             ['contact', 'tripadvisor_url', '', 'string'],
@@ -83,7 +83,7 @@ class SettingsSeeder extends Seeder
 
             // Email
             ['email', 'mail_from_name', 'Desert Safari Pakistan', 'string'],
-            ['email', 'admin_notification_email', 'info@example.com', 'string'],
+            ['email', 'admin_notification_email', 'farooqhalimzai24@gmail.com', 'string'],
 
             // Cancellation
             ['cancellation', 'free_cancellation_hours', '24', 'int'],

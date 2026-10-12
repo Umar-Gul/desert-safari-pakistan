@@ -48,8 +48,10 @@ return [
         'hero' => [
             'label' => 'Home hero',
             'fields' => [
+                'hero_eyebrow' => ['label' => 'Small line above the title', 'type' => 'text', 'max' => 80, 'hint' => 'Example: From dunes to dreams'],
                 'hero_title' => ['label' => 'Hero title', 'type' => 'text', 'max' => 160],
                 'hero_subtitle' => ['label' => 'Hero subtitle', 'type' => 'textarea', 'max' => 300],
+                'hero_cta_text' => ['label' => 'Main button text', 'type' => 'text', 'max' => 40, 'hint' => 'Leave empty for "Explore all tours".'],
                 'hero_image' => ['label' => 'Hero image', 'type' => 'image', 'hint' => 'Wide image, at least 1600 px. Up to 2 MB.'],
             ],
         ],

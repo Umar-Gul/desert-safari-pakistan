@@ -20,6 +20,6 @@ class PublicSiteServiceProvider extends ServiceProvider
         RateLimiter::for('forms', fn (Request $r) => Limit::perMinute(5)->by($r->ip()));
         RateLimiter::for('track', fn (Request $r) => Limit::perMinute(10)->by($r->ip()));
 
-        View::composer(['layouts.partials.header', 'layouts.partials.footer'], NavigationComposer::class);
+        View::composer(['layouts.navigation', 'layouts.partials.footer'], NavigationComposer::class);
     }
 }

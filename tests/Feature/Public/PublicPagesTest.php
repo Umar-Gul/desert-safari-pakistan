@@ -6,6 +6,7 @@ namespace Tests\Feature\Public;
 
 use App\Models\Blog;
 use App\Models\CampType;
+use App\Models\Category;
 use App\Models\Desert;
 use App\Models\Enquiry;
 use App\Models\EventPackage;
@@ -52,6 +53,29 @@ class PublicPagesTest extends TestCase
             ->assertSee('Best time for Cholistan')
             ->assertSee('Local guides')
             ->assertSee('School Trip Package');
+    }
+
+    public function test_navigation_shows_active_categories_from_the_database(): void
+    {
+        $category = Category::factory()->create([
+            'name' => 'Database Safari',
+            'slug' => 'database-safari',
+            'show_in_menu' => true,
+        ]);
+        Category::factory()->inactive()->create([
+            'name' => 'Inactive Safari',
+            'slug' => 'inactive-safari',
+            'show_in_menu' => true,
+        ]);
+
+        $content = $this->get('/')->assertOk()->getContent();
+
+        $matched = preg_match('/<nav[^>]*aria-label="Safari categories"[^>]*>(.*?)<\/nav>/s', $content, $navigation);
+
+        $this->assertSame(1, $matched, 'The header navigation should be rendered.');
+        $this->assertStringContainsString('href="'.route('categories.show', $category->slug).'"', $navigation[1]);
+        $this->assertStringContainsString($category->name, $navigation[1]);
+        $this->assertStringNotContainsString('Inactive Safari', $navigation[1]);
     }
 
     public function test_tour_list_hides_inactive_tours_and_filters_by_price(): void

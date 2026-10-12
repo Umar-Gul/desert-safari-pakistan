@@ -46,7 +46,6 @@
 </head>
 <body class="flex min-h-screen flex-col bg-stone-50 font-sans text-stone-800 antialiased">
 
-    @include('layouts.partials.topbar')
     @include('layouts.partials.header')
 
     <main class="flex-1">
