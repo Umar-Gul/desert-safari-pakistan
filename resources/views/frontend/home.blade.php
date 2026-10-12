@@ -14,7 +14,7 @@
         :title="$site->hero_title"
         :subtitle="$site->hero_subtitle"
         :eyebrow="$site->hero_eyebrow ?? null"
-        :image="$site->hero_image"
+        :image-url="filled($site->hero_image) ? asset('storage/'.ltrim($site->hero_image, '/')) : null"
         :cta-text="$site->hero_cta_text ?? null"
     />
 
@@ -29,8 +29,10 @@
         </div>
     @endif
 
-    {{-- Explore activities --}}
+    {{-- Temporarily hidden; restore this component call to re-enable Browse by Activity. --}}
+    {{--
     <x-home.quick-links :links="$activityLinks" heading="Explore by activity" />
+    --}}
 
     {{-- Introduction --}}
     <x-home.intro :title="$site->home_intro_title" :html="$site->home_intro_html" />
@@ -40,8 +42,7 @@
         <x-home.spotlight :tour="$spotlight" />
     @endif
 
-    {{-- Browse tour categories --}}
-    <x-home.categories :categories="$categories" />
+   
 
     {{-- Featured and popular tours --}}
     <x-home.featured-tours
@@ -50,6 +51,9 @@
         subtitle="Hand-picked desert experiences for your next adventure."
         :link="route('tours.index')"
     />
+
+     {{-- Browse tour categories --}}
+    <x-home.categories :categories="$categories" />
 
     <x-home.featured-tours
         :tours="$bestSelling"

@@ -45,7 +45,7 @@ class PublicPagesTest extends TestCase
         TrustBadge::factory()->create(['title' => 'Local guides']);
         EventPackage::factory()->create(['title' => 'School Trip Package']);
 
-        $this->get('/')
+        $response = $this->get('/')
             ->assertOk()
             ->assertSee('Thar Sunrise Safari')
             ->assertSee('Is the dinner halal?')
@@ -53,6 +53,13 @@ class PublicPagesTest extends TestCase
             ->assertSee('Best time for Cholistan')
             ->assertSee('Local guides')
             ->assertSee('School Trip Package');
+
+        $response
+            ->assertDontSee('Explore by activity')
+            ->assertDontSee('@if', false)
+            ->assertDontSee('@foreach', false)
+            ->assertDontSee('@once', false)
+            ->assertDontSee('{{ $imageUrl }}', false);
     }
 
     public function test_navigation_shows_active_categories_from_the_database(): void
