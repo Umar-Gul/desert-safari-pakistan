@@ -49,7 +49,7 @@ class HomeController extends Controller
             'featured' => Tour::query()->active()->featured()->withCardRelations()->ordered()->limit(8)->get(),
             'bestSelling' => Tour::query()->active()->bestSelling()->withCardRelations()->ordered()->limit(8)->get(),
 
-            'eventPackages' => EventPackage::query()->active()->with('media')->ordered()->limit(5)->get(),
+            'eventPackages' => EventPackage::query()->active()->with('media')->ordered()->limit(6)->get(),
             'vehicles' => Vehicle::query()->active()->with('media')->ordered()->limit(8)->get(),
             'campTypes' => CampType::query()->active()->with('media')->ordered()->limit(8)->get(),
             'deserts' => Desert::query()->active()->with('media')->ordered()->limit(8)->get(),
