@@ -44,4 +44,23 @@
             </x-primary-button>
         </div>
     </form>
+
+    <div class="mt-6">
+    <div class="relative my-4">
+        <div class="absolute inset-0 flex items-center" aria-hidden="true"><div class="w-full border-t border-stone-200"></div></div>
+        <div class="relative flex justify-center"><span class="bg-white px-3 text-xs uppercase tracking-wide text-stone-500">or</span></div>
+    </div>
+
+    @if ($errors->any())
+    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {{ $errors->first() }}
+    </div>
+@endif
+
+    <div class="space-y-3">
+        <x-social-button provider="google" />
+        <x-social-button provider="github" />
+        {{-- <x-social-button provider="facebook" /> --}}
+    </div>
+</div>
 </x-guest-layout>

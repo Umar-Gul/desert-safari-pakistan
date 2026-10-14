@@ -1,0 +1,133 @@
+/* ==========================================================
+   UX layer: animations, polish, accessibility
+   Import from resources/js/app.js:  import '../css/ux.css';
+   All animation is gated by html.js so no-JS visitors see content.
+   ========================================================== */
+
+:root {
+  --ux-ease: cubic-bezier(.22, .61, .36, 1);
+  --ux-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --ux-accent: #d97706; /* change to your brand colour */
+}
+
+html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
+
+/* ---------- Scroll progress bar ---------- */
+#ux-progress {
+  position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 9999;
+  transform-origin: 0 50%; transform: scaleX(0);
+  background: linear-gradient(90deg, var(--ux-accent), #fbbf24);
+  pointer-events: none;
+}
+
+/* ---------- Reveal on scroll ---------- */
+html.js [data-reveal] {
+  opacity: 0; will-change: opacity, transform;
+  transition: opacity .7s var(--ux-ease), transform .7s var(--ux-ease);
+  transition-delay: var(--ux-delay, 0ms);
+}
+html.js [data-reveal="up"],
+html.js [data-reveal=""]      { transform: translate3d(0, 28px, 0); }
+html.js [data-reveal="down"]  { transform: translate3d(0, -28px, 0); }
+html.js [data-reveal="left"]  { transform: translate3d(-36px, 0, 0); }
+html.js [data-reveal="right"] { transform: translate3d(36px, 0, 0); }
+html.js [data-reveal="zoom"]  { transform: scale(.94); }
+html.js [data-reveal="fade"]  { transform: none; }
+html.js [data-reveal].is-visible { opacity: 1; transform: none; }
+
+/* ---------- Image fade-in + zoom on hover ---------- */
+html.js img[loading="lazy"] { opacity: 0; transition: opacity .6s var(--ux-ease); }
+html.js img[loading="lazy"].is-loaded { opacity: 1; }
+.ux-zoom { overflow: hidden; }
+.ux-zoom img { transition: transform .8s var(--ux-ease); }
+.ux-zoom:hover img { transform: scale(1.06); }
+
+/* ---------- Cards ---------- */
+.ux-card {
+  transition: transform .35s var(--ux-ease), box-shadow .35s var(--ux-ease);
+}
+@media (hover: hover) {
+  .ux-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px -16px rgba(0,0,0,.28); }
+}
+
+/* ---------- Buttons ---------- */
+.btn, .btn-primary, .btn-outline, .btn-whatsapp {
+  position: relative; overflow: hidden;
+  transition: transform .2s var(--ux-ease), box-shadow .25s var(--ux-ease), background-color .25s, color .25s;
+}
+@media (hover: hover) {
+  .btn:hover, .btn-primary:hover, .btn-whatsapp:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -10px rgba(0,0,0,.35); }
+}
+.btn:active, .btn-primary:active, .btn-outline:active, .btn-whatsapp:active { transform: scale(.97); }
+.ux-ripple {
+  position: absolute; border-radius: 50%; background: rgba(255,255,255,.45);
+  transform: scale(0); animation: ux-ripple .6s linear; pointer-events: none;
+}
+@keyframes ux-ripple { to { transform: scale(4); opacity: 0; } }
+
+/* ---------- Header: shrink + hide-on-scroll-down ---------- */
+.ux-header { transition: transform .35s var(--ux-ease), box-shadow .3s, background-color .3s, padding .3s; }
+.ux-header.is-scrolled { box-shadow: 0 6px 24px -12px rgba(0,0,0,.25); }
+
+/* ---------- Nav link underline ---------- */
+.ux-link { position: relative; }
+.ux-link::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px;
+  background: var(--ux-accent); transform: scaleX(0); transform-origin: left;
+  transition: transform .3s var(--ux-ease);
+}
+.ux-link:hover::after, .ux-link[aria-current="page"]::after { transform: scaleX(1); }
+
+/* ---------- Hero ---------- */
+[data-parallax] { will-change: transform; }
+@keyframes ux-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.ux-float { animation: ux-float 4s ease-in-out infinite; }
+@keyframes ux-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(37,211,102,.55); }
+  100% { box-shadow: 0 0 0 18px rgba(37,211,102,0); }
+}
+.ux-pulse { animation: ux-pulse-ring 2s infinite; }
+
+/* ---------- Back to top ---------- */
+#ux-top {
+  position: fixed; right: 1rem; bottom: 5.5rem; z-index: 60;
+  width: 44px; height: 44px; border-radius: 9999px; border: 0; cursor: pointer;
+  display: grid; place-items: center; color: #fff; background: #111827;
+  opacity: 0; transform: translateY(16px); pointer-events: none;
+  transition: opacity .3s, transform .3s var(--ux-ease-spring);
+  box-shadow: 0 8px 20px -8px rgba(0,0,0,.5);
+}
+#ux-top.is-on { opacity: 1; transform: none; pointer-events: auto; }
+#ux-top:hover { background: var(--ux-accent); }
+
+/* ---------- FAQ accordion smoothness (works with <details>) ---------- */
+details > summary { cursor: pointer; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details[open] > *:not(summary) { animation: ux-open .35s var(--ux-ease); }
+@keyframes ux-open { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Page transition ---------- */
+html.js body { animation: ux-page .5s var(--ux-ease) both; }
+@keyframes ux-page { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Skeleton shimmer (add class to placeholders) ---------- */
+.ux-skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 37%, #e5e7eb 63%);
+  background-size: 400% 100%; animation: ux-shimmer 1.4s ease infinite;
+}
+@keyframes ux-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+/* ---------- Accessibility ---------- */
+:focus-visible { outline: 3px solid var(--ux-accent); outline-offset: 3px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  html.js [data-reveal] { opacity: 1 !important; transform: none !important; }
+}
+
+/* ---------- Mobile touch comfort ---------- */
+@media (max-width: 640px) {
+  html { scroll-padding-top: 4.5rem; }
+  a, button, summary { -webkit-tap-highlight-color: transparent; }
+  .btn, .btn-primary, .btn-outline, .btn-whatsapp { min-height: 44px; }
+}

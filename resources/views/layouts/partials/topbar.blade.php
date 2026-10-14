@@ -30,7 +30,7 @@
             </div>
         </div>
 
-        <!-- Right Side: Utility Navigation Links & Profile Dropdown -->
+        <!-- Right Side: Utility Navigation Links & Auth -->
         <div class="flex items-center gap-6">
             <div class="hidden lg:flex items-center gap-6 font-medium text-stone-700">
                 <a href="{{ route('home') }}" class="transition hover:text-[#8B2014] {{ request()->routeIs('home') ? 'text-[#8B2014]' : '' }}">Home</a>
@@ -48,7 +48,7 @@
                 </a>
             @endif
 
-            <!-- User Auth Dropdown -->
+            <!-- Logged-in user dropdown -->
             @auth
                 <div class="hidden sm:flex sm:items-center">
                     <x-dropdown align="right" width="48">
@@ -73,6 +73,17 @@
                     </x-dropdown>
                 </div>
             @endauth
+
+            <!-- Visitor: Log in button -->
+            @guest
+                @if (Route::has('login'))
+                    <a href="{{ route('login') }}"
+                       class="inline-flex items-center gap-1.5 rounded-full bg-[#8B2014] px-4 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#6f190f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8B2014] focus-visible:ring-offset-2">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.118a7.5 7.5 0 0115 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.5-1.632z"/></svg>
+                        Log in
+                    </a>
+                @endif
+            @endguest
         </div>
     </div>
 </div>

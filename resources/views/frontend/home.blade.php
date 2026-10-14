@@ -55,6 +55,15 @@
      {{-- Browse tour categories --}}
     <x-home.categories :categories="$categories" />
 
+    
+    {{-- Supporting information --}}
+    <x-home.info-grid
+        heading="Our vehicles"
+        subtitle="Comfortable, well-maintained desert vehicles with experienced drivers."
+        :items="$vehicles"
+        route="vehicles.show"
+    />
+
     <x-home.featured-tours
         :tours="$bestSelling"
         heading="Best-selling experiences"
@@ -64,13 +73,6 @@
     {{-- Group experiences --}}
     <x-home.event-packages :packages="$eventPackages" />
 
-    {{-- Supporting information --}}
-    <x-home.info-grid
-        heading="Our vehicles"
-        subtitle="Comfortable, well-maintained desert vehicles with experienced drivers."
-        :items="$vehicles"
-        route="vehicles.show"
-    />
 
     <x-home.info-grid
         heading="Camp categories"
