@@ -12,13 +12,13 @@
     }
 
     $tabs = ['overview' => 'Overview'];
-    if (filled($tour->description)) { $tabs['description'] = 'Description'; }
-    if ($tour->itineraryItems->isNotEmpty()) { $tabs['itinerary'] = 'Itinerary'; }
-    if ($tour->additionalInfos->isNotEmpty()) { $tabs['info'] = 'Additional info'; }
-    if ($tour->addons->isNotEmpty()) { $tabs['addons'] = 'Add-ons'; }
-    if ($tour->inclusions->isNotEmpty() || $tour->exclusions->isNotEmpty()) { $tabs['included'] = 'Included / excluded'; }
-    $tabs['cancellation'] = 'Cancellation policy';
-    $tabs['faq'] = 'FAQ & questions';
+    if (filled($tour->description)) { $tabs['description'] = 'About this tour'; }
+    if ($tour->itineraryItems->isNotEmpty()) { $tabs['itinerary'] = 'Tour Plan'; }
+    if ($tour->additionalInfos->isNotEmpty()) { $tabs['info'] = 'Good to Know'; }
+    if ($tour->addons->isNotEmpty()) { $tabs['addons'] = 'Extras'; }
+    if ($tour->inclusions->isNotEmpty() || $tour->exclusions->isNotEmpty()) { $tabs['included'] = "What's Included"; }
+    $tabs['cancellation'] = 'Cancellation & Refund';
+    $tabs['faq'] = 'Questions & Answers';
     $tabs['reviews'] = 'Reviews ('.$tour->reviews_count_cached.')';
 
     $startTab = array_key_exists((string) request('tab'), $tabs) ? (string) request('tab') : 'overview';
@@ -143,7 +143,7 @@
 
             {{-- Quick facts --}}
             @php
-                $flags = collect(['has_dinner' => 'Dinner included', 'has_breakfast' => 'Breakfast included', 'has_guide' => 'Local guide', 'has_transfer' => 'Pick and drop'])
+                $flags = collect(['has_dinner' => 'Dinner included', 'has_breakfast' => 'Breakfast included', 'has_guide' => 'Local tour guide', 'has_transfer' => 'Pick and drop'])
                     ->filter(fn ($label, $flag) => $tour->{$flag});
             @endphp
             @if ($flags->isNotEmpty())
@@ -178,7 +178,7 @@
 
                         @if ($tour->highlights->isNotEmpty())
                             <div class="{{ $cardClass }}">
-                                <h2 class="mb-4 text-lg font-bold text-stone-900">Highlights</h2>
+                                <h2 class="mb-4 text-lg font-bold text-stone-900">Main Attractions</h2>
                                 <ul class="grid gap-3 sm:grid-cols-2">
                                     @foreach ($tour->highlights as $h)
                                         <li class="flex gap-2.5 text-sm text-stone-700">{!! $checkIcon !!}<span>{{ $h->text }}</span></li>
@@ -191,7 +191,7 @@
                             <div class="grid gap-4 sm:grid-cols-2">
                                 @if ($tour->campTypes->isNotEmpty())
                                     <div class="{{ $cardClass }}">
-                                        <h3 class="font-bold text-stone-900">Camp options</h3>
+                                        <h3 class="font-bold text-stone-900">Camp choices</h3>
                                         <ul class="mt-3 space-y-2 text-sm">
                                             @foreach ($tour->campTypes as $c)
                                                 <li><a href="{{ route('camps.show', $c->slug) }}" class="inline-flex items-center gap-1.5 text-stone-700 transition hover:text-[#8B2014]"><span class="h-1.5 w-1.5 rounded-full bg-[#8B2014]"></span>{{ $c->name }}</a></li>
@@ -201,7 +201,7 @@
                                 @endif
                                 @if ($tour->vehicles->isNotEmpty())
                                     <div class="{{ $cardClass }}">
-                                        <h3 class="font-bold text-stone-900">Vehicle options</h3>
+                                        <h3 class="font-bold text-stone-900">Vehicle choices</h3>
                                         <ul class="mt-3 space-y-2 text-sm">
                                             @foreach ($tour->vehicles as $v)
                                                 <li><a href="{{ route('vehicles.show', $v->slug) }}" class="inline-flex items-center gap-1.5 text-stone-700 transition hover:text-[#8B2014]"><span class="h-1.5 w-1.5 rounded-full bg-[#8B2014]"></span>{{ $v->name }}</a></li>
@@ -218,7 +218,7 @@
                         <section x-show="tab === 'description'" x-cloak class="rich {{ $cardClass }}">{!! \App\Support\Html::clean($tour->description) !!}</section>
                     @endisset
 
-                    {{-- Itinerary --}}
+                    {{-- Tour Plan --}}
                     @isset($tabs['itinerary'])
                         <section x-show="tab === 'itinerary'" x-cloak>
                             <ol class="relative space-y-5 border-l-2 border-[#8B2014]/20 pl-8">
@@ -240,7 +240,7 @@
                         </section>
                     @endisset
 
-                    {{-- Additional info --}}
+                    {{-- Good to Know --}}
                     @isset($tabs['info'])
                         <section x-show="tab === 'info'" x-cloak class="space-y-4">
                             @foreach ($tour->additionalInfos as $info)
@@ -252,7 +252,7 @@
                         </section>
                     @endisset
 
-                    {{-- Add-ons --}}
+                    {{-- Extras --}}
                     @isset($tabs['addons'])
                         <section x-show="tab === 'addons'" x-cloak class="grid gap-4 sm:grid-cols-2">
                             @foreach ($tour->addons as $addon)
@@ -266,7 +266,7 @@
                                     @endif
                                 </div>
                             @endforeach
-                            <p class="text-xs text-stone-500 sm:col-span-2">Choose add-ons in the booking box.</p>
+                            <p class="text-xs text-stone-500 sm:col-span-2">You can choose extras in the booking box.</p>
                         </section>
                     @endisset
 
@@ -274,7 +274,7 @@
                     @isset($tabs['included'])
                         <section x-show="tab === 'included'" x-cloak class="grid gap-4 sm:grid-cols-2">
                             <div class="{{ $cardClass }}">
-                                <h3 class="mb-3 font-bold text-stone-900">Included</h3>
+                                <h3 class="mb-3 font-bold text-stone-900">What is included</h3>
                                 <ul class="space-y-2.5 text-sm text-stone-700">
                                     @foreach ($tour->inclusions as $item)
                                         <li class="flex gap-2.5">{!! $checkIcon !!}<span>{{ $item->text }}</span></li>
@@ -282,7 +282,7 @@
                                 </ul>
                             </div>
                             <div class="{{ $cardClass }}">
-                                <h3 class="mb-3 font-bold text-stone-900">Not included</h3>
+                                <h3 class="mb-3 font-bold text-stone-900">What is not included</h3>
                                 <ul class="space-y-2.5 text-sm text-stone-700">
                                     @foreach ($tour->exclusions as $item)
                                         <li class="flex gap-2.5">{!! $crossIcon !!}<span>{{ $item->text }}</span></li>
@@ -298,7 +298,7 @@
                             <div class="rich">{!! \App\Support\Html::clean($tour->cancellation_policy) !!}</div>
                         @else
                             <p class="leading-relaxed text-stone-700">
-                                Free cancellation up to {{ config('booking.free_cancellation_hours', 24) }} hours before the start time.
+                                Free cancellation up to {{ config('booking.free_cancellation_hours', 24) }} hours before the tour starts.
                                 Later cancellations may be charged {{ rtrim(rtrim(number_format((float) config('booking.late_cancellation_fee_percent', 50), 1), '0'), '.') }}% of the booking total.
                             </p>
                         @endif
@@ -312,7 +312,7 @@
                         @endif
 
                         <div>
-                            <h3 class="mb-4 text-lg font-bold text-stone-900">Questions from other guests</h3>
+                            <h3 class="mb-4 text-lg font-bold text-stone-900">Questions from other visitors</h3>
                             @forelse ($tour->approvedQuestions as $q)
                                 <div class="{{ $cardClass }} mb-3">
                                     <p class="font-semibold text-stone-900">{{ $q->question }}</p>
@@ -333,7 +333,7 @@
                             <div class="hidden" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <input name="name" type="text" value="{{ old('name') }}" placeholder="Your name" required class="{{ $inputClass }}" aria-label="Your name">
-                                <input name="email" type="email" value="{{ old('email') }}" placeholder="Email (not shown)" required class="{{ $inputClass }}" aria-label="Email">
+                                <input name="email" type="email" value="{{ old('email') }}" placeholder="Email (will not be shown)" required class="{{ $inputClass }}" aria-label="Email">
                             </div>
                             <textarea name="question" rows="3" placeholder="Your question" required class="{{ $inputClass }}" aria-label="Your question">{{ old('question') }}</textarea>
                             @if ($errors->hasAny(['name', 'email', 'question']))
@@ -382,7 +382,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <input name="title" type="text" value="{{ old('title') }}" placeholder="Headline (optional)" class="{{ $inputClass }}" aria-label="Headline">
+                            <input name="title" type="text" value="{{ old('title') }}" placeholder="Review title (optional)" class="{{ $inputClass }}" aria-label="Review title">
                             <textarea name="comment" rows="4" placeholder="Tell us about your trip" required class="{{ $inputClass }}" aria-label="Your review">{{ old('comment') }}</textarea>
                             <div>
                                 <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-stone-500" for="visited_on">Date of visit (optional)</label>

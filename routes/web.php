@@ -47,14 +47,7 @@ require __DIR__.'/admin_operations.php';
 // Public site (Phase 5).
 require __DIR__.'/public.php';
 
-use App\Http\Controllers\Auth\GoogleController;
 
-Route::middleware('guest')->group(function () {
-    Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
-    Route::get('/auth/google/callback', [GoogleController::class, 'callback'])
-        ->middleware('throttle:10,1')
-        ->name('google.callback');
-});
 
 use App\Http\Controllers\Auth\SocialController;
 

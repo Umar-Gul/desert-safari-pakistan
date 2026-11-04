@@ -27,8 +27,12 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/tours', [TourController::class, 'index'])->name('tours.index');
 Route::get('/tours/{slug}', [TourController::class, 'show'])->name('tours.show');
 Route::post('/tours/{slug}/price', QuoteController::class)->middleware('throttle:quote')->name('tours.price');
-Route::get('/tours/{slug}/checkout', [CheckoutController::class, 'show'])->name('tours.checkout');
-Route::post('/tours/{slug}/checkout', [CheckoutController::class, 'store'])->middleware('throttle:booking')->name('tours.checkout.store');
+Route::get('/tours/{slug}/checkout', [CheckoutController::class, 'show'])
+    ->middleware(\App\Http\Middleware\PreserveGuestBooking::class)
+    ->name('tours.checkout');
+Route::post('/tours/{slug}/checkout', [CheckoutController::class, 'store'])
+    ->middleware(['throttle:booking', \App\Http\Middleware\PreserveGuestBooking::class])
+    ->name('tours.checkout.store');
 Route::post('/tours/{slug}/reviews', [FeedbackController::class, 'review'])->middleware('throttle:forms')->name('reviews.store');
 
 Route::get('/booking/{reference}/thank-you', [BookingTrackingController::class, 'thanks'])->middleware('signed')->name('booking.thanks');

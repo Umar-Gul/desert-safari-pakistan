@@ -28,6 +28,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $pending = $request->session()->get('pending_booking');
+        if (is_array($pending) && ! empty($pending['slug'])) {
+            $params = array_intersect_key((array) ($pending['data'] ?? []), array_flip(['tour_date', 'adults', 'children', 'camp_type_id', 'vehicle_id', 'addons', 'coupon_code']));
+            $checkout = route('tours.checkout', ['slug' => $pending['slug'], ...$params], absolute: false);
+            $request->session()->put('url.intended', $checkout);
+
+            return redirect()->intended($checkout)
+                ->withInput((array) ($pending['data'] ?? []));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

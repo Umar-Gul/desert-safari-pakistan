@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Public;
 
 use App\Models\Blog;
+use App\Enums\BookingStatus;
+use App\Models\Availability;
+use App\Models\Booking;
 use App\Models\CampType;
 use App\Models\Category;
 use App\Models\Desert;
@@ -20,6 +23,7 @@ use App\Models\TourInclusion;
 use App\Models\TourItineraryItem;
 use App\Models\TrustBadge;
 use App\Models\Vehicle;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesBookableTour;
 use Tests\TestCase;
@@ -101,6 +105,92 @@ class PublicPagesTest extends TestCase
         $this->get('/tours?max_price=5000')->assertSee('Budget Dune Ride')->assertDontSee('Luxury Camp Night');
         $this->get('/tours?sort=price_desc')->assertSeeInOrder(['Luxury Camp Night', 'Budget Dune Ride']);
         $this->get('/tours?sort=price_asc')->assertSeeInOrder(['Budget Dune Ride', 'Luxury Camp Night']);
+    }
+
+    public function test_tour_listing_shows_availability_status_from_schedule_and_active_bookings(): void
+    {
+        $available = $this->makeTour(['title' => 'Available Safari']);
+        $closed = $this->makeTour(['title' => 'Closed Safari']);
+        $full = $this->makeTour(['title' => 'Fully Booked Safari']);
+        $unscheduled = $this->makeTour(['title' => 'Unscheduled Safari']);
+
+        Availability::factory()->create([
+            'tour_id' => $available->id, 'date' => now()->addDays(5)->toDateString(),
+            'capacity' => 10, 'booked_count' => 3,
+        ]);
+        Availability::factory()->closed()->create([
+            'tour_id' => $closed->id, 'date' => now()->addDays(5)->toDateString(),
+            'capacity' => 10,
+        ]);
+        $fullDate = Availability::factory()->create([
+            'tour_id' => $full->id, 'date' => now()->addDays(5)->toDateString(),
+            'capacity' => 3, 'booked_count' => 0,
+        ]);
+        Booking::factory()->confirmed()->create([
+            'tour_id' => $full->id, 'tour_date' => $fullDate->date->toDateString(),
+            'adults' => 2, 'children' => 1,
+        ]);
+
+        $this->get('/tours/')
+            ->assertOk()
+            ->assertSee('Available Safari')->assertSee('7 spots left')
+            ->assertSee('Closed Safari')->assertSee('Closed')
+            ->assertSee('Fully Booked Safari')->assertSee('Fully Booked')
+            ->assertSee('Unscheduled Safari')->assertSee('Closed');
+    }
+
+    public function test_same_day_cutoff_is_consistent_across_listing_calendar_and_quote_validation(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-07 13:00:00'));
+        $tour = $this->makeTour(['title' => 'Same Day Safari']);
+        $date = Availability::factory()->create([
+            'tour_id' => $tour->id,
+            'date' => '2026-10-07',
+            'capacity' => 10,
+        ]);
+
+        $this->get('/tours')
+            ->assertOk()
+            ->assertSee('Same Day Safari')
+            ->assertSee('Closed');
+
+        $datePicker = $this->get(route('tours.show', $tour->slug))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression(
+            '/<button[^>]*disabled[^>]*aria-label="[^\"]*'.preg_quote($date->date->format('D, d M Y'), '/').'[^\"]*Closed/',
+            $datePicker,
+        );
+        $this->assertStringNotContainsString('10 spots left', $datePicker);
+
+        $this->postJson(route('tours.price', $tour->slug), [
+            'tour_date' => $date->date->toDateString(),
+            'adults' => 1,
+            'children' => 0,
+        ])->assertUnprocessable()
+            ->assertJsonPath('message', 'Same-day bookings close at 12:00. Please choose another date or contact us.');
+    }
+
+    public function test_tour_page_lists_all_dates_with_shared_closed_full_and_available_statuses(): void
+    {
+        $tour = $this->makeTour(['title' => 'Date status safari']);
+        $available = Availability::factory()->create([
+            'tour_id' => $tour->id, 'date' => today()->addDays(2)->toDateString(),
+            'capacity' => 8, 'booked_count' => 3,
+        ]);
+        $full = Availability::factory()->create([
+            'tour_id' => $tour->id, 'date' => today()->addDays(3)->toDateString(),
+            'capacity' => 4, 'booked_count' => 4,
+        ]);
+        $closed = Availability::factory()->closed()->create([
+            'tour_id' => $tour->id, 'date' => today()->addDays(4)->toDateString(),
+        ]);
+
+        $content = $this->get(route('tours.show', $tour->slug))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<button[^>]*aria-label="[^\"]*'.preg_quote($available->date->format('D, d M Y'), '/').'[^\"]*5 left/', $content);
+        $this->assertMatchesRegularExpression('/<button[^>]*disabled[^>]*aria-label="[^\"]*'.preg_quote($full->date->format('D, d M Y'), '/').'[^\"]*Fully Booked/', $content);
+        $this->assertMatchesRegularExpression('/<button[^>]*disabled[^>]*aria-label="[^\"]*'.preg_quote($closed->date->format('D, d M Y'), '/').'[^\"]*Closed/', $content);
+        $this->assertStringContainsString('Availability key', $content);
+        $this->assertStringContainsString('no availability', strtolower($content));
     }
 
     public function test_price_filter_uses_the_discounted_price(): void

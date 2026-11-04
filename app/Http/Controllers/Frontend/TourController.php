@@ -15,10 +15,17 @@ use Illuminate\View\View;
 
 class TourController extends Controller
 {
-    public function index(Request $request, TourListingQuery $listing): View
+    public function index(Request $request, TourListingQuery $listing, AvailabilityService $availability): View
     {
+        $tours = $listing->build($request)->paginate(12)->withQueryString();
+        $statuses = $availability->tourStatuses($tours->getCollection(), today(), today()->addDays(90));
+        $tours->getCollection()->each(fn (Tour $tour) => $tour->setAttribute(
+            'availability_status',
+            $statuses[$tour->id] ?? ['status' => 'closed', 'remaining' => 0],
+        ));
+
         return view('frontend.tours.index', [
-            'tours' => $listing->build($request)->paginate(12)->withQueryString(),
+            'tours' => $tours,
             'filters' => $listing->filterOptions(),
             'selected' => $listing->selected($request),
         ]);
@@ -46,7 +53,8 @@ class TourController extends Controller
             ->limit(4)
             ->get();
 
-        $map = $availability->calendar($tour, today(), today()->addDays(120))->all();
+        // Include the current month's past days so the calendar can show them dimmed.
+        $map = $availability->dateStatuses($tour, today()->startOfMonth(), today()->addDays(90));
 
         $widget = [
             'quoteUrl' => route('tours.price', $tour->slug),
@@ -54,8 +62,11 @@ class TourController extends Controller
             'token' => csrf_token(),
             'symbol' => (string) setting('currency_symbol', 'Rs'),
             'today' => today()->toDateString(),
-            'lastDate' => today()->addDays(120)->toDateString(),
-            'maxGuests' => (int) ($tour->max_group_size ?: config('booking.max_guests_per_booking', 50)),
+            'lastDate' => today()->addDays(90)->toDateString(),
+            'maxGuests' => min(
+                (int) config('booking.max_guests_per_booking', 50),
+                (int) ($tour->max_group_size ?: config('booking.max_guests_per_booking', 50)),
+            ),
             'availability' => $map,
             'campTypes' => $tour->campTypes->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 'note' => $this->campNote($c)])->values()->all(),
             'vehicles' => $tour->vehicles->map(fn ($v) => [

@@ -31,6 +31,21 @@ class CheckoutController extends Controller
     public function show(PriceQuoteRequest $request, string $slug): View|RedirectResponse
     {
         $tour = $this->tour($slug);
+        $pending = $request->session()->get('pending_booking');
+        $pendingData = (array) $request->session()->get('pending_bookings.'.$slug, []);
+        if ($pendingData === [] && is_array($pending) && ($pending['slug'] ?? null) === $slug) {
+            $pendingData = (array) ($pending['data'] ?? []);
+        }
+        $selection = $request->query->all();
+        foreach (['tour_date', 'adults', 'children', 'camp_type_id', 'vehicle_id', 'addons', 'coupon_code'] as $key) {
+            if (! array_key_exists($key, $selection) && array_key_exists($key, $pendingData)) {
+                $selection[$key] = $pendingData[$key];
+            }
+        }
+        $request->merge($selection);
+        if ($pendingData !== []) {
+            $request->session()->flash('_old_input', $pendingData);
+        }
         $input = $request->toQuoteInput();
 
         try {
@@ -84,8 +99,12 @@ class CheckoutController extends Controller
             $request->toQuoteInput(),
             $request->customerData(),
             $request->idempotencyKey(),
-            $request->user()?->id,
+            $request->user()->id,
         );
+
+        $request->session()->forget('pending_booking');
+        $request->session()->forget('pending_bookings.'.$slug);
+        $request->session()->forget('url.intended');
 
         return redirect(URL::temporarySignedRoute('booking.thanks', now()->addHours(6), ['reference' => $booking->reference]));
     }

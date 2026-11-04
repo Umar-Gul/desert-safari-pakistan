@@ -64,6 +64,20 @@ class BookingServiceTest extends TestCase
         Event::assertDispatched(BookingCreated::class);
     }
 
+    public function test_confirmed_booking_is_not_cancelled_by_time_passing(): void
+    {
+        $tour = $this->makeTour();
+        $date = $this->openDate($tour, 40);
+        $booking = $this->bookings->create($tour, $this->quoteInput($date), $this->customer(), 'confirmed-after-day');
+        $this->bookings->confirm($booking);
+
+        Carbon::setTestNow(now()->addHours(25));
+        $this->assertSame(BookingStatus::Confirmed, $booking->fresh()->status);
+        $this->assertNull($booking->fresh()->cancelled_at);
+        $this->assertEquals(3, $date->fresh()->booked_count);
+        Carbon::setTestNow();
+    }
+
     public function test_same_idempotency_key_returns_the_same_booking_once(): void
     {
         $tour = $this->makeTour();
@@ -89,6 +103,29 @@ class BookingServiceTest extends TestCase
         } catch (BookingException) {
             $this->assertSame(0, Booking::count());
             $this->assertEquals(0, $date->fresh()->booked_count);
+        }
+    }
+
+    public function test_competing_bookings_cannot_take_the_same_remaining_seats(): void
+    {
+        $tour = $this->makeTour();
+        $date = $this->openDate($tour, 5, 3);
+
+        $first = $this->bookings->create(
+            $tour, $this->quoteInput($date, ['adults' => 2, 'children' => 0]),
+            $this->customer(), 'competing-one',
+        );
+
+        try {
+            $this->bookings->create(
+                $tour, $this->quoteInput($date, ['adults' => 2, 'children' => 0]),
+                $this->customer(), 'competing-two',
+            );
+            $this->fail('The second request should not take seats already reserved by the first.');
+        } catch (BookingException) {
+            $this->assertSame(BookingStatus::Pending, $first->fresh()->status);
+            $this->assertSame(1, Booking::count());
+            $this->assertSame(2, (int) $date->fresh()->booked_count);
         }
     }
 

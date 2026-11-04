@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\View\Composers\SettingsComposer;
+use App\Models\Availability;
+use App\Observers\AvailabilityObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Availability::observe(AvailabilityObserver::class);
         // Catch N+1 problems early (not in production).
         Model::preventLazyLoading(! $this->app->isProduction());
 

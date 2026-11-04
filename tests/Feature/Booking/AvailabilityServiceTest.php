@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Booking;
 
 use App\Exceptions\BookingException;
+use App\Enums\BookingStatus;
 use App\Models\Availability;
+use App\Models\Booking;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -58,7 +60,11 @@ class AvailabilityServiceTest extends TestCase
     public function test_not_enough_seats_is_rejected_with_remaining_count(): void
     {
         $tour = $this->makeTour();
-        $date = $this->openDate($tour, 5, 10, ['booked_count' => 8]);
+        $date = $this->openDate($tour, 5, 10);
+        Booking::factory()->create([
+            'tour_id' => $tour->id, 'tour_date' => $date->date->toDateString(),
+            'adults' => 8, 'children' => 0, 'status' => BookingStatus::Confirmed,
+        ]);
 
         try {
             $this->availability->check($tour, $date->date, 3);
@@ -125,9 +131,21 @@ class AvailabilityServiceTest extends TestCase
     public function test_calendar_reports_remaining_and_open_flags(): void
     {
         $tour = $this->makeTour();
-        $open = $this->openDate($tour, 3, 10, ['booked_count' => 4]);
-        $full = $this->openDate($tour, 4, 10, ['booked_count' => 10]);
+        $open = $this->openDate($tour, 3, 10);
+        $full = $this->openDate($tour, 4, 10);
         $closed = $this->openDate($tour, 5, 10, ['is_closed' => true]);
+        Booking::factory()->create([
+            'tour_id' => $tour->id, 'tour_date' => $open->date->toDateString(),
+            'adults' => 3, 'children' => 1, 'status' => BookingStatus::Pending,
+        ]);
+        Booking::factory()->create([
+            'tour_id' => $tour->id, 'tour_date' => $full->date->toDateString(),
+            'adults' => 8, 'children' => 2, 'status' => BookingStatus::Confirmed,
+        ]);
+        Booking::factory()->cancelled()->create([
+            'tour_id' => $tour->id, 'tour_date' => $full->date->toDateString(),
+            'adults' => 10, 'children' => 0,
+        ]);
 
         $calendar = $this->availability->calendar($tour, now(), now()->addDays(10));
 
@@ -135,5 +153,73 @@ class AvailabilityServiceTest extends TestCase
         $this->assertTrue($calendar[$open->date->toDateString()]['open']);
         $this->assertFalse($calendar[$full->date->toDateString()]['open']);
         $this->assertFalse($calendar[$closed->date->toDateString()]['open']);
+    }
+
+    public function test_date_statuses_include_unscheduled_closed_full_and_available_dates(): void
+    {
+        $tour = $this->makeTour();
+        $available = $this->openDate($tour, 2, 9, ['booked_count' => 3]);
+        $full = $this->openDate($tour, 3, 4, ['booked_count' => 4]);
+        $closed = $this->openDate($tour, 4, 10, ['is_closed' => true]);
+        $from = today();
+        $to = today()->addDays(5);
+
+        $statuses = $this->availability->dateStatuses($tour, $from, $to);
+
+        $this->assertSame('available', $statuses[$available->date->toDateString()]['status']);
+        $this->assertSame(6, $statuses[$available->date->toDateString()]['remaining']);
+        $this->assertSame('full', $statuses[$full->date->toDateString()]['status']);
+        $this->assertSame('closed', $statuses[$closed->date->toDateString()]['status']);
+        $this->assertSame('closed', $statuses[today()->addDay()->toDateString()]['status']);
+        $this->assertArrayHasKey(today()->addDays(5)->toDateString(), $statuses);
+    }
+
+    public function test_tour_status_uses_next_available_dates_remaining_seats_and_status_priority(): void
+    {
+        $availableTour = $this->makeTour();
+        $this->openDate($availableTour, 2, 10, ['booked_count' => 2]);
+        $this->openDate($availableTour, 3, 10, ['booked_count' => 0]);
+        $fullTour = $this->makeTour();
+        $this->openDate($fullTour, 2, 3, ['booked_count' => 3]);
+        $this->openDate($fullTour, 3, 3, ['booked_count' => 3]);
+        $closedTour = $this->makeTour();
+        $this->openDate($closedTour, 2, 10, ['is_closed' => true]);
+
+        $statuses = $this->availability->tourStatuses(collect([$availableTour, $fullTour, $closedTour]), today(), today()->addDays(10));
+
+        $this->assertSame(['status' => 'available', 'remaining' => 8], $statuses[$availableTour->id]);
+        $this->assertSame(['status' => 'full', 'remaining' => 0], $statuses[$fullTour->id]);
+        $this->assertSame(['status' => 'closed', 'remaining' => 0], $statuses[$closedTour->id]);
+    }
+
+    public function test_date_status_capacity_matches_booking_validation(): void
+    {
+        $tour = $this->makeTour();
+        $date = $this->openDate($tour, 5, 6);
+        Booking::factory()->confirmed()->create([
+            'tour_id' => $tour->id, 'tour_date' => $date->date->toDateString(),
+            'adults' => 5, 'children' => 0,
+        ]);
+
+        $status = $this->availability->dateStatuses($tour, $date->date, $date->date)[$date->date->toDateString()];
+        $this->assertSame('available', $status['status']);
+        $this->assertSame(1, $status['remaining']);
+
+        $this->expectException(BookingException::class);
+        $this->availability->check($tour, $date->date, 2);
+    }
+
+    public function test_cancelled_bookings_do_not_occupy_capacity_even_if_the_cached_counter_is_stale(): void
+    {
+        $tour = $this->makeTour();
+        $date = $this->openDate($tour, 5, 4, ['booked_count' => 4]);
+        Booking::factory()->cancelled()->create([
+            'tour_id' => $tour->id, 'tour_date' => $date->date->toDateString(),
+            'adults' => 4, 'children' => 0,
+        ]);
+
+        $this->assertSame(4, $this->availability->calendar($tour, $date->date, $date->date)[$date->date->toDateString()]['remaining']);
+        $this->assertSame(4, $this->availability->lockAndCheck($tour, $date->date, 4)->remaining);
+        $this->assertSame(0, $date->fresh()->booked_count);
     }
 }
