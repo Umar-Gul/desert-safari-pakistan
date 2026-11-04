@@ -1,59 +1,120 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Desert Safari Pakistan — Tour Booking Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A full-featured desert safari tour-booking website for Pakistan (Cholistan, Thar, Thal and Kharan), built with **Laravel 12**. It includes a public booking site and a complete admin dashboard for managing tours, bookings, availability, payments, content and users.
 
-## About Laravel
+> Live demo: [add URL] · Screenshots: see `/docs/screenshots`
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**Public site**
+- Browse tours by category and destination
+- Tour detail pages with galleries, itinerary, pricing and trust badges
+- Booking flow with availability checking
+- Email confirmations and downloadable PDF booking voucher
+- SEO-ready pages (meta tags, sitemap, structured content)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Admin dashboard**
+- Dashboard overview and site settings
+- Tour editor (content, media, pricing, categories)
+- Bookings, availability calendar and payment tracking
+- Review/content moderation and user management
+- Role-based access control (admin / staff permissions)
 
-## Learning Laravel
+## Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| Layer | Technology |
+|---|---|
+| Backend | Laravel 12, PHP 8.2+ |
+| Database | MySQL |
+| Frontend | Blade, Tailwind CSS, Alpine.js |
+| Auth | Laravel Breeze |
+| Packages | spatie/laravel-permission, spatie/laravel-medialibrary, mews/purifier |
+| Testing | PHPUnit / Pest feature and unit tests |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Getting Started
 
-## Laravel Sponsors
+### Requirements
+- PHP 8.2+, Composer
+- Node.js 18+ and npm
+- MySQL (XAMPP works fine on Windows)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Installation
 
-### Premium Partners
+```bash
+git clone https://github.com/Umar-Gul/desert-safari.git
+cd desert-safari
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+composer install
+npm install
 
-## Contributing
+cp .env.example .env
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Create a MySQL database (for example `desert_safari`), then set the credentials in `.env`:
 
-## Code of Conduct
+```env
+DB_DATABASE=desert_safari
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Run migrations, seed demo data and link storage:
 
-## Security Vulnerabilities
+```bash
+php artisan migrate --seed
+php artisan storage:link
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Start the app:
+
+```bash
+npm run dev
+php artisan serve
+```
+
+Open http://127.0.0.1:8000
+
+### Admin access
+
+Seeded admin credentials are created by the database seeder. Check `database/seeders` for the default account and **change the password immediately** in any non-local environment.
+
+## Running Tests
+
+```bash
+php artisan test
+```
+
+## Project Structure
+
+```
+app/
+  Enums/          Domain enums (statuses, etc.)
+  Models/         Eloquent models
+  Observers/      Model observers
+  Services/       Business logic (booking, availability, payments)
+  Policies/       Authorization policies
+  Http/Requests/  Form request validation
+database/
+  migrations/  factories/  seeders/
+resources/views/  Blade templates (public + admin)
+tests/            Feature and unit tests
+```
+
+## Deployment Checklist
+
+- Set `APP_ENV=production` and `APP_DEBUG=false`
+- Configure real database, mail and storage settings in `.env`
+- Run `php artisan migrate --force`
+- Run `php artisan config:cache route:cache view:cache`
+- Build assets with `npm run build`
+- Point the web server document root to `/public`
+
+## Author
+
+**Umar Gul** — Full Stack Developer (MERN · Laravel)
+[GitHub](https://github.com/Umar-Gul) · [LinkedIn](https://linkedin.com/in/engr-umar-gul-670a69387) · [Portfolio](https://umar-gul-portfolio.netlify.app)
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is for portfolio and demonstration purposes. Add a license here if you plan to open-source it.
